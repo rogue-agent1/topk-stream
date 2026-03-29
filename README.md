@@ -1,7 +1,9 @@
 # topk-stream
-Streaming top-K elements with min-heap. Zero dependencies.
+
+Top-K heavy hitters in streams. Single-file Python CLI, zero dependencies.
+
 ## Usage
-```
-python3 topk_stream.py demo
-shuf -i 1-1000000 | python3 topk_stream.py 20
+
+```bash
+python3 topk_stream.py
 ```

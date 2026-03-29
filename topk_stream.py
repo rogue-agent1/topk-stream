@@ -1,47 +1,37 @@
 #!/usr/bin/env python3
-"""topk_stream - Streaming top-K elements with min-heap."""
-import sys, heapq, random, time, json
+"""Top-K heavy hitters — Space-Saving algorithm."""
+import sys
 
-def topk_stream(iterable, k=10, key=None):
-    heap = []
-    for item in iterable:
-        val = key(item) if key else item
-        if len(heap) < k:
-            heapq.heappush(heap, (val, item))
-        elif val > heap[0][0]:
-            heapq.heapreplace(heap, (val, item))
-    return sorted(heap, reverse=True)
+class SpaceSaving:
+    def __init__(self, k=10):
+        self.k = k
+        self.counts = {}
+        self.min_count = 0
+    def add(self, item):
+        if item in self.counts:
+            self.counts[item] += 1
+        elif len(self.counts) < self.k:
+            self.counts[item] = 1
+        else:
+            min_item = min(self.counts, key=self.counts.get)
+            self.min_count = self.counts[min_item]
+            del self.counts[min_item]
+            self.counts[item] = self.min_count + 1
+    def top(self, n=None):
+        n = n or self.k
+        return sorted(self.counts.items(), key=lambda x: -x[1])[:n]
 
-def demo():
-    random.seed(42)
-    data = [random.randint(1, 10000) for _ in range(100000)]
-    k = 10
-    start = time.time()
-    result = topk_stream(data, k)
-    elapsed = time.time() - start
-    print(f"Top {k} from {len(data):,} elements ({elapsed*1000:.1f}ms):")
-    for score, item in result:
-        print(f"  {item:>6}")
-    # Verify
-    actual = sorted(data, reverse=True)[:k]
-    print(f"\n  Correct: {[item for _,item in result] == actual}")
-
-def from_stdin(k=10):
-    values = []
-    for line in sys.stdin:
-        for tok in line.split():
-            try: values.append(float(tok))
-            except: pass
-    result = topk_stream(values, k)
-    for score, item in result:
-        print(f"  {item}")
-
-def main():
-    args = sys.argv[1:]
-    if not args or args[0] == 'demo': demo()
-    elif args[0] == '-h': print("Usage: topk_stream.py demo | topk_stream.py K < data")
-    else:
-        k = int(args[0]) if args[0].isdigit() else 10
-        from_stdin(k)
-
-if __name__ == '__main__': main()
+if __name__ == "__main__":
+    import random
+    ss = SpaceSaving(10)
+    # Zipf-like distribution
+    items = []
+    for i in range(100):
+        freq = max(1, 1000 // (i + 1))
+        items.extend([f"item_{i}"] * freq)
+    random.shuffle(items)
+    for it in items:
+        ss.add(it)
+    print(f"Processed {len(items)} items, top-10:")
+    for item, count in ss.top():
+        print(f"  {item}: {count}")
